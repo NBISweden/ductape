@@ -21,8 +21,10 @@ adding yet another one to the mix.
 
 ### From GitHub
 1. Clone this repository with `git clone git@github.com:NBISweden/ductape.git`
+2. Change directory: `cd ductape`
 2. Set up a conda environment to use for installation: `conda create -n ductape python`
-3. Install `ductape`: `python -m pip install .`
+3. Activate the environment: `conda activate ductape`
+3. Install the package: `python -m pip install .`
 
 ## ductaped workflows
 
