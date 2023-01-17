@@ -1,0 +1,178 @@
+from importlib.resources import files
+import pandas as pd
+from snakemake.utils import validate
+import os
+
+if os.path.exists("ductape.yaml"):
+
+    configfile: "ductape.yaml"
+
+
+config_schema = files("ductape").joinpath("schemas/config.schema.yaml")
+validate(config, schema=config_schema, set_default=True)
+
+
+assemblers = []
+if not config["mag"]["skip_megahit"]:
+    assemblers.append("MEGAHIT")
+if not config["mag"]["skip_spades"]:
+    assemblers.append("SPAdes")
+
+samples = (
+    pd.read_csv(config["sample_list"], sep=",", dtype={"group": str})
+    .set_index("sample", drop=False)
+    .sort_index()
+)
+
+sample_schema = files("ductape").joinpath("schemas/sample.schema.yaml")
+validate(samples, schema=sample_schema)
+
+
+def mem_allowed(wildcards, threads):
+    return max(threads * 6400, 6400)
+
+
+def nf_wrapper_extra(nf_config, sm_config):
+    extra = []
+    if sm_config["resume"]:
+        extra = ["-resume"]
+    if nf_config:
+        return extra + [f"-c {nf_config}"]
+    for key, value in sm_config.items():
+        if key in ["revision", "config", "profile", "resume"]:
+            continue
+        extra += [f"--{key}={value}"]
+    return extra
+
+
+rule final:
+    input:
+        expand(
+            "{mag_outdir}/Assembly/MEGAHIT/MEGAHIT-group-{group}.contigs.fa.gz",
+            mag_outdir=config["mag"]["outdir"],
+            group=samples.group.unique(),
+        ),
+        expand(
+            "{mag_outdir}/Prodigal/{assembler}/group-{group}/group-{group}.faa",
+            mag_outdir=config["mag"]["outdir"],
+            group=samples.group.unique(),
+            assembler=assemblers,
+        ),
+
+
+rule mag_pipeline:
+    input:
+        input=config["sample_list"],
+    output:
+        touch(
+            expand(
+                "{mag_outdir}/Assembly/MEGAHIT/MEGAHIT-group-{group}.contigs.fa.gz",
+                mag_outdir=config["mag"]["outdir"],
+                group=samples.group.unique(),
+            )
+        ),
+        touch(
+            expand(
+                "{mag_outdir}/Assembly/SPAdes/SPAdes-group-{group}_{asm_type}.fasta.gz",
+                mag_outdir=config["mag"]["outdir"],
+                group=samples.group.unique(),
+                asm_type=["contigs", "scaffolds"],
+            )
+        ),
+        touch(
+            expand(
+                "{mag_outdir}/Prodigal/{assembler}/group-{group}/group-{group}.faa",
+                mag_outdir=config["mag"]["outdir"],
+                group=samples.group.unique(),
+                assembler=assemblers,
+            )
+        ),
+    params:
+        pipeline="nf-core/mag",
+        revision=config["mag"]["revision"],
+        profile=config["mag"]["profile"],
+        extra=nf_wrapper_extra(config["mag"]["config"], config["mag"]),
+    handover: True
+    envmodules:
+        "bioinfo-tools",
+        "Nextflow",
+        "nf-core",
+        "nf-core-pipelines",
+    wrapper:
+        "v1.21.2/utils/nextflow"
+
+
+rule emapper_search:
+    output:
+        "{mag_outdir}/eggnog/{assembler}/group-{group}/group-{group}.emapper.seed_orthologs",
+    input:
+        faa="{mag_outdir}/Prodigal/{assembler}/group-{group}/group-{group}.faa",
+        data=expand(
+            "{eggnog_data_dir}/{f}",
+            eggnog_data_dir=config["eggnog"]["eggnog_data_dir"],
+            f=["eggnog.db", "eggnog_proteins.dmnd"],
+        ),
+    params:
+        eggnog_data_dir=lambda wildcards, input: os.path.dirname(input.data[1]),
+        out="group-{group}",
+        scratch_dir="$TMPDIR/{group}-eggnog",
+        temp_dir="$TMPDIR/{group}-eggnog",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]),
+        flags="-m diamond --itype proteins --sensmode ultra-sensitive --no_annot --outfmt_short",
+    log:
+        "{mag_outdir}/eggnog/{assembler}/group-{group}.emapper_search.log",
+    conda:
+        "envs/emapper.yaml"
+    envmodules:
+        "bioinfo-tools",
+        "eggNOG-mapper/2.1.5",
+    threads: 10
+    resources:
+        runtime=240,
+        mem_mb=mem_allowed,
+    shell:
+        """
+        mkdir -p {params.temp_dir}
+        export EGGNOG_DATA_DIR="{params.eggnog_data_dir}
+        emapper.py {params.flags} --cpu {threads} --temp_dir {params.temp_dir} \
+            --scratch_dir {params.scratch_dir} -i {input.faa} -o {params.out} \
+            --output_dir {params.output_dir} >{log} 2>&1
+        rm -rf {params.temp_dir}
+        """
+
+
+rule emapper_annotate:
+    output:
+        "{mag_outdir}/eggnog/{assembler}/group-{group}/group-{group}.emapper.annotations",
+    input:
+        ort=rules.emapper_search.output[0],
+        data=expand(
+            "{eggnog_data_dir}/{f}",
+            eggnog_data_dir=config["eggnog"]["eggnog_data_dir"],
+            f=["eggnog.db", "eggnog_proteins.dmnd"],
+        ),
+    params:
+        eggnog_data_dir=lambda wildcards, input: os.path.dirname(input.data[1]),
+        temp_dir="$TMPDIR/{group}-eggnog",
+        scratch_dir="$TMPDIR/{group}-eggnog/{group}",
+        output_dir=lambda wildcards, output: os.path.dirname(output[0]),
+        out="group-{group}",
+        dbmem="--dbmem" if config["eggnog"]["dbmem"] else "",
+    log:
+        "{mag_outdir}/eggnog/{assembler}/group-{group}/group-{group}.emapper.annotate.log",
+    conda:
+        "envs/emapper.yaml"
+    envmodules:
+        "bioinfo-tools",
+        "eggNOG-mapper/2.1.5",
+    threads: 10
+    resources:
+        runtime=120,
+        mem_mb=mem_allowed,
+    shell:
+        """
+        export EGGNOG_DATA_DIR="{params.eggnog_data_dir}
+        emapper.py -m no_search {params.dbmem} --cpu {threads} -o {params.out} \
+            --temp_dir {params.temp_dir} --scratch_dir {params.scratch_dir} \
+            --output_dir {params.output_dir} --annotate_hits_file {input.ort} >{log} 2>&1
+        """

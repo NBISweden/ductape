@@ -11,7 +11,7 @@ options.
 
 Run 'snakemake --help' or see the Snakemake documentation to see valid snakemake arguments.
 """
-import importlib
+from importlib.resources import files, as_file
 import logging
 import subprocess
 import sys
@@ -40,17 +40,15 @@ def run_snakemake(
     cores=None,
     arguments=None,
 ):
-    try:
-        _ = YAML(typ="safe").load(Path("workflowtool.yaml"))
-    except FileNotFoundError as e:
-        sys.exit(
-            f"Pipeline configuration file '{e.filename}' not found. "
-            f"Please see the documentation for how to create it."
-        )
 
-    with importlib.resources.path("workflowtool", "Snakefile") as snakefile:
+    source = files("ductape").joinpath("Snakefile")
+    with as_file(source) as snakefile:
         command = [
-            "snakemake", f"--cores={'all' if cores is None else cores}", "-p", "-s", snakefile
+            "snakemake",
+            f"--cores={'all' if cores is None else cores}",
+            "-p",
+            "-s",
+            snakefile,
         ]
         if arguments:
             command += arguments

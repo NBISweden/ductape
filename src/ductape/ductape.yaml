@@ -1,0 +1,22 @@
+sample_list: "samples.csv"
+
+mag:
+  revision: "2.2.1"
+  profile:
+    - "docker"
+    - "test"
+  resume: True
+  outdir: "results"
+  skip_adapter_trimming: True
+  centrifuge_db: ""
+  kraken_db: ""
+  skip_krona: True
+  coassemble_group: True
+  skip_spades: True
+  skip_megahit: False
+  binning_map_mode: "all"
+  skip_maxbin2: True
+  skip_metabat2: False
+  bowtie2_mode: "--very-sensitive"
+  config: ""
+  min_contig_size: 2500

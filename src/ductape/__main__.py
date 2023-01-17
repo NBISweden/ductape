@@ -10,7 +10,7 @@ import importlib.resources
 from . import cli
 from .cli import CommandLineError
 
-PROGNAME = "workflowtool"
+PROGNAME = "ductape"
 logger = logging.getLogger(__name__)
 
 
@@ -52,7 +52,10 @@ def get_subcommand_name(arguments) -> str:
 
     for module_name, docstring in cli_modules():
         subparser = subparsers.add_parser(
-            module_name, help=docstring.split("\n")[1], description=docstring, add_help=False
+            module_name,
+            help=docstring.split("\n")[1],
+            description=docstring,
+            add_help=False,
         )
         subparser.set_defaults(module_name=module_name)
     args, _ = parser.parse_known_args(arguments)
