@@ -58,6 +58,12 @@ rule final:
             group=samples.group.unique(),
             assembler=assemblers,
         ),
+        expand(
+            "{mag_outdir}/eggnog/{assembler}/group-{group}/group-{group}.emapper.annotations",
+            mag_outdir=config["mag"]["outdir"],
+            group=samples.group.unique(),
+            assembler=assemblers,
+        ),
 
 
 rule mag_pipeline:
