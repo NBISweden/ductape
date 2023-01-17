@@ -12,11 +12,17 @@ adding yet another one to the mix.
 
 ## Installation
 
-1. Install with `mamba create -n ductape ductape` and activate the environment.
+### With conda
+1. Install with `conda create -c bioconda -n ductape ductape` and activate the environment.
 2. Run `ductape init pipelinedir` and change into the newly created
    directory `pipelinedir`.
 3. Edit `ductape.yaml` and `samples.csv`.
 4. Run `ductape run`.
+
+### From GitHub
+1. Clone this repository with `git clone git@github.com:NBISweden/ductape.git`
+2. Set up a conda environment to use for installation: `conda create -n ductape python`
+3. Install `ductape`: `python -m pip install .`
 
 ## ductaped workflows
 
