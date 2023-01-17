@@ -1,0 +1,26 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+description: an entry in the sample sheet
+properties:
+  sample:
+    type: string
+    description: sample name/identifier
+  group:
+    type: string
+    description: assembly/binning group id
+  short_reads_1:
+    type: string
+    description: Path to R1 file for short reads
+  short_reads_2:
+    type: string
+    description: Path to R2 file for short reads
+  long_reads:
+    type: string
+    description: Path to long reads
+
+
+required:
+  - sample
+  - group
+  - short_reads_1
+  - short_reads_2
