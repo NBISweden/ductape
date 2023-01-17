@@ -180,5 +180,5 @@ rule emapper_annotate:
         export EGGNOG_DATA_DIR="{params.eggnog_data_dir}
         emapper.py -m no_search {params.dbmem} --cpu {threads} -o {params.out} \
             --temp_dir {params.temp_dir} --scratch_dir {params.scratch_dir} \
-            --output_dir {params.output_dir} --annotate_hits_file {input.ort} >{log} 2>&1
+            --output_dir {params.output_dir} --annotate_hits_table {input.ort} >{log} 2>&1
         """
