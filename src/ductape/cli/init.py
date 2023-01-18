@@ -12,12 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 def add_arguments(parser):
-    parser.add_argument("directory", type=Path, help="New pipeline directory to create")
+    parser.add_argument(
+        "directory",
+        default=Path("."),
+        type=Path,
+        help="New pipeline directory to create",
+    )
 
 
 def main(args, arguments):
     if arguments:
-        raise CommandLineError("These arguments are unknown: %s", arguments)
+        raise CommandLineError(f"These arguments are unknown: {arguments}")
     run_init(**vars(args))
 
 
