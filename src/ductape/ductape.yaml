@@ -1,22 +1,159 @@
 sample_list: "samples.csv"
 
+# Parameters for the nf-core/mag pipeline
 mag:
+  # NEXTFLOW PARAMETERS
+  # What revision of the nf-core/mag pipeline to use
   revision: "2.2.1"
+  # Specify profiles to run with (on Uppmax, put 'uppmax' in the list)
   profile:
     - "docker"
-    - "test"
+  # Might be good to always run with resume set to True
   resume: True
-  outdir: "results"
-  skip_adapter_trimming: True
-  centrifuge_db: ""
-  kraken_db: ""
-  skip_krona: True
-  coassemble_group: True
-  skip_spades: True
-  skip_megahit: False
-  binning_map_mode: "all"
-  skip_maxbin2: True
-  skip_metabat2: False
-  bowtie2_mode: "--very-sensitive"
+  # If you want, you may also supply a nextflow-style config with all parameters
+  # This will override all other settings
   config: ""
+
+  # INPUT/OUTPUT OPTIONS
+  # Input sample list, or path to fastq-files (e.g. 'path/to/data/sample_*_{1,2}.fastq.gz')
+  input: "samples.csv"
+  # Are you using single-end reads?
+  single_end: False
+  # Output directory
+  outdir: "results"
+  # Email for completion summary
+  email: ""
+  # Title for multiqc report
+  multiqc_title: ""
+  # REFERENCE GENOME OPTION
+  igenomes_base: "s3://ngi-igenomes/igenomes"
+  igenomes_ignore: False
+
+  # MAX JOB REQUEST OPTIONS
+  max_cpus: 16
+  max_memory: "128.GB"
+  max_time: "240.h"
+
+  # QUALITY CONTROL FOR SHORT READ OPTIONS
+  # Adapter clipping tool to use (fastp or adapterremoval)
+  clip_tool: "fastp"
+  # Minimum length of reads to be kept
+  reads_minlength: 30
+  # Minimum phred quality value of a base to be qualified in fastp.
+  fastp_qualified_quality: 15
+  # The mean quality requirement used for per read sliding window cutting by fastp.
+  fastp_cut_mean_quality: 15
+  # Save reads that fail fastp filtering in a separate file. Not used downstream.
+  fastp_save_trimmed_fail: False
+  # The minimum base quality for low-quality base trimming by AdapterRemoval.
+  adapterremoval_minquality: 2
+  # Turn on quality trimming by consecutive stretch of low quality bases, rather than by window.
+  adapterremoval_trim_quality_stretch: False
+  # Forward read adapter to be trimmed by AdapterRemoval.
+  adapterremoval_adapter1: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATCTCGTATGCCGTCTTCTGCTTG"
+  # Reverse read adapter to be trimmed by AdapterRemoval for paired end data.
+  adapterremoval_adapter2: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
+  # Name of iGenomes reference for host contamination removal.
+  host_genome: ""
+  # Fasta reference file for host contamination removal.
+  host_fasta: ""
+  # Use the --very-sensitive instead of the--sensitivesetting for Bowtie 2 to map reads against the host genome.
+  host_removal_verysensitive: False
+  # Save the read IDs of removed host reads.
+  host_removal_save_ids: False
+  # Keep reads similar to the Illumina internal standard PhiX genome.
+  keep_phix: False
+
+  # QUALITY CONTROL FOR LONG READS OPTIONS
+  # Skip removing adapter sequences from long reads.
+  skip_adapter_trimming: False
+  # Discard any read which is shorter than this value.
+  longreads_min_length: 1000
+  # Keep this percent of bases.
+  longreads_keep_percent: 90
+  # The higher the more important is read length when choosing the best reads.
+  longreads_length_weight: 10
+  # Keep reads similar to the ONT internal standard Escherichia virus Lambda genome.
+  keep_lambda: False
+
+  # TAXONOMIC PROFILING OPTIONS
+  # Database for taxonomic binning with centrifuge.
+  centrifuge_db: ""
+  # Database for taxonomic binning with kraken2.
+  kraken2_db: ""
+  # Skip creating a krona plot for taxonomic binning.
+  skip_krona: True
+  # Database for taxonomic classification of metagenome assembled genomes.
+  cat_db: ""
+  # Generate CAT database.
+  cat_db_generate: False
+  # Save CAT database
+  save_cat_db: False
+  # GTDB database for taxonomic classification of bins with GTDB-tk.
+  gtdb: "https://data.ace.uq.edu.au/public/gtdb/data/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz"
+  # Min. bin completeness (in %) required to apply GTDB-tk classification.
+  gtdbtk_min_completeness: 50
+  # Max. bin contamination (in %) allowed to apply GTDB-tk classification.
+  gtdbtk_max_contamination: 10
+  # Min. fraction of AA (in %) in the MSA for bins to be kept.
+  gtdbtk_min_af: 0.65
+  # Number of CPUs used for the by GTDB-Tk run tool pplacer.
+  gtdbtk_pplacer_cpus: 1
+  # Reduce GTDB-Tk memory consumption by running pplacer in a setting writing to disk.
+  gtdbtk_pplacer_scratch: True
+
+  # ASSEMBLY OPTIONS
+  # Co-assemble samples within one group, instead of assembling each sample separately.
+  coassemble_group: True
+  # Additional custom options for SPAdes.
+  spades_options: ""
+  # Additional custom options for MEGAHIT.
+  megahit_options: ""
+  # Skip Illumina-only SPAdes assembly.
+  skip_spades: True
+  # Skip SPAdes hybrid assembly.
+  skip_spadeshybrid: True
+  # Skip MEGAHIT assembly.
+  skip_megahit: False
+  # Skip metaQUAST.
+  skip_quast: False
+
+  # GENE PREDICTION OPTIONS
+  # Skip Prodigal gene prediction
+  skip_prodigal: False
+
+  # BINNING OPTIONS
+  # Defines mapping strategy to compute co-abundances for binning, i.e. which
+  # samples will be mapped against the assembly.
+  binning_map_mode: "all"
+  # Skip metagenome binning entirely
+  skip_binning: False
+  # Skip MetaBAT2 Binning
+  skip_metabat2: False
+  # Skip MaxBin2 Binning
+  skip_maxbin2: False
+  # Minimum contig size to be considered for binning and for bin quality check.
   min_contig_size: 2500
+  # Minimal length of contigs that are not part of any bin but treated as individual genome.
+  min_length_unbinned_contigs: 1000000
+  # Maximal number of contigs that are not part of any bin but treated as individual genome.
+  max_unbinned_contigs: 100
+  # Bowtie2 alignment mode
+  bowtie2_mode: "--very-sensitive"
+  # Skip Prokka genome annotation.
+  skip_prokka: True
+
+  # BIN QUALITY CHECK OPTIONS
+  # Disable bin QC with BUSCO.
+  skip_busco: False
+  # Turn on bin refinement using DAS Tool.
+  refine_bins_dastool: True
+  # Specify single-copy gene score threshold for bin refinement.
+  refine_bins_dastool_threshold: 0.5
+  # Specify which binning output is sent for downstream annotation, taxonomic
+  # classification, bin quality control etc.
+  postbinning_input: "refined_bins_only"
+
+eggnog:
+  usemem: True
+  eggnog_data_dir: "resources/eggNOG/5.0"

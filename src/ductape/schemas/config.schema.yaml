@@ -9,102 +9,42 @@ properties:
     type: string
     description: path to a sample sheet
     default: "samples.csv"
-
   mag:
     type: object
     default:
       revision: "2.2.1"
-      profile: [ "test", "docker" ]
+      profile: [ "docker" ]
       resume: True
       config: ""
-      outdir: "results"
-      skip_adapter_trimming: True
-      centrifuge_db: "false"
-      kraken_db: "false"
-      skip_krona: True
-      coassemble_group: True
-      skip_spades: True
-      skip_megahit: False
-      binning_map_mode: "all"
-      skip_maxbin2: True
-      skip_metabat2: False
-      min_contig_size: 2500
+      assemblers: ["MEGAHIT"]
     properties:
       revision:
         type: string
-        description: "Version of pipeline to run with"
         default: "2.2.1"
+        description: "Revision of mag pipeline to use"
       profile:
         type: array
+        default: ["docker"]
         description: "Profiles to use"
-        default: ["test", "docker"]
       resume:
         type: boolean
-        description: "Resume pipeline"
         default: True
+        description: "Resume workflow"
       config:
         type: string
-        description: "Path to nextflow config file"
         default: ""
-      outdir:
-        type: string
-        description: "Output directory for nf-core/mag"
-        default: "results"
-      skip_adapter_trimming:
-        type: boolean
-        description: "Should adapter trimming be skipped"
-        default: False
-      centrifuge_db:
-        type: string
-        description: "Path to centrifuge database (tar.gz archive)"
-        default: ""
-      kraken_db:
-        type: string
-        description: "Path to kraken database (tar.gz archive)"
-        default: ""
-      skip_krona:
-        type: boolean
-        description: "Should krona plot be skipped"
-        default: True
-      coassemble_group:
-        type: boolean
-        description: "Coassemble defined groups"
-        default: True
-      skip_spades:
-        type: boolean
-        description: "Skip spades assembler"
-        default: True
-      skip_megahit:
-        type: boolean
-        description: "Skip megahit assembler"
-        default: False
-      binning_map_mode:
-        type: string
-        description: "How to map samples"
-        default: "all"
-        enum: ["all", "group", "own"]
-      skip_maxbin2:
-        type: boolean
-        description: "Should maxbin2 be skipped"
-        default: True
-      skip_metabat2:
-        type: boolean
-        description: "Should metabat2 be skipped"
-        default: False
-      min_contig_size:
-        type: integer
-        description: "Minimum contig size to use for binning"
-        default: 2500
-        min: 1500
-      refine_bins_dastool:
-        type: boolean
-        description: "Should bins be refined with DASTool"
-        default: True
+        description: "Path to nextflow style config file"
+      assemblers:
+        type: array
+        default: ["MEGAHIT"]
+        description: "What assemblers to use"
+        items:
+          enum: ["MEGAHIT", "SPAdes"]
   eggnog:
     type: object
     default:
       usemem: True
-      eggnog_data_dir: "/sw/data/eggNOG/5.0"
+      eggnog_data_dir: "resources/eggNOG/5.0"
     properties:
       dbmem:
         type: boolean
@@ -113,7 +53,7 @@ properties:
       eggnog_data_dir:
         type: string
         description: "Path to the eggnog database directory"
-        default: "/sw/data/eggNOG/5.0"
+        default: "resources/eggNOG/5.0"
 
   required:
     - sample_list
