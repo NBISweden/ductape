@@ -10,13 +10,8 @@ if os.path.exists("ductape.yaml"):
 
 config_schema = files("ductape").joinpath("schemas/config.schema.yaml")
 validate(config, schema=config_schema, set_default=True)
-
-
-assemblers = []
-if not config["mag"]["skip_megahit"]:
-    assemblers.append("MEGAHIT")
-if not config["mag"]["skip_spades"]:
-    assemblers.append("SPAdes")
+if not config["mag"]["input"]:
+    config["mag"]["input"] = config["sample_list"]
 
 samples = (
     pd.read_csv(config["sample_list"], sep=",", dtype={"group": str})
@@ -39,7 +34,7 @@ def nf_wrapper_extra(nf_config, sm_config):
     if nf_config:
         return extra + [f"-c {nf_config}"]
     for key, value in sm_config.items():
-        if key in ["revision", "config", "profile", "resume"]:
+        if key in ["revision", "config", "profile", "resume", "assemblers"] or not value:
             continue
         extra += [f"--{key}={value}"]
     return extra
@@ -56,19 +51,17 @@ rule final:
             "{mag_outdir}/Prodigal/{assembler}/group-{group}/group-{group}.faa",
             mag_outdir=config["mag"]["outdir"],
             group=samples.group.unique(),
-            assembler=assemblers,
+            assembler=config["mag"]["assemblers"],
         ),
         expand(
             "{mag_outdir}/eggnog/{assembler}/group-{group}/group-{group}.emapper.annotations",
             mag_outdir=config["mag"]["outdir"],
             group=samples.group.unique(),
-            assembler=assemblers,
+            assembler=config["mag"]["assemblers"],
         ),
 
 
 rule mag_pipeline:
-    input:
-        input=config["sample_list"],
     output:
         touch(
             expand(
@@ -90,7 +83,7 @@ rule mag_pipeline:
                 "{mag_outdir}/Prodigal/{assembler}/group-{group}/group-{group}.faa",
                 mag_outdir=config["mag"]["outdir"],
                 group=samples.group.unique(),
-                assembler=assemblers,
+                assembler=config["mag"]["assemblers"],
             )
         ),
     params:
@@ -106,6 +99,11 @@ rule mag_pipeline:
         "nf-core-pipelines",
     wrapper:
         "v1.21.2/utils/nextflow"
+
+
+rule mag:
+    input:
+        rules.mag_pipeline.output,
 
 
 rule emapper_search:
