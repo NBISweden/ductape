@@ -1,0 +1,6 @@
+name: nextflow
+description: Run nextflow pipeline
+authors:
+  - John Sundh
+notes: |
+  This wrapper can run nextflow pipelines
