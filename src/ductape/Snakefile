@@ -3,6 +3,10 @@ import pandas as pd
 from snakemake.utils import validate
 import os
 
+envvars:
+    "SNIC_TMP",
+    "TMPDIR"
+
 if os.path.exists("ductape.yaml"):
 
     configfile: "ductape.yaml"
@@ -93,6 +97,7 @@ rule mag_pipeline:
         extra=nf_wrapper_extra(config["mag"]["config"], config["mag"]),
     handover: True
     envmodules:
+        "uppmax",
         "bioinfo-tools",
         "Nextflow",
         "nf-core",
