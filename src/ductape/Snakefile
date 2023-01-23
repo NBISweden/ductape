@@ -94,7 +94,6 @@ rule mag_pipeline:
         pipeline="nf-core/mag",
         revision=config["mag"]["revision"],
         profile=config["mag"]["profile"],
-        envvars=config["mag"]["envvars"],
         extra=nf_wrapper_extra(config["mag"]["config"], config["mag"]),
     handover: True
     envmodules:
@@ -104,8 +103,7 @@ rule mag_pipeline:
         "nf-core",
         "nf-core-pipelines",
     wrapper:
-        #"v1.21.2/utils/nextflow"
-        file(files("ductape").joinpath("wrappers/nextflow"))
+        "v1.21.2/utils/nextflow"
 
 
 rule mag:
