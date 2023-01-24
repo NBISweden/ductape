@@ -135,8 +135,7 @@ rule emapper_search:
     resources:
         runtime=240,
         mem_mb=mem_allowed,
-        account=config['account'] if config['account'] else ''
-        #slurm_extra=f"--account {config['account']}" if config["account"] else ""
+        slurm_account=config['account'] if 'account' in config.keys() and config['account']!="" else ''
     shell:
         """
         mkdir -p {params.temp_dir}
@@ -176,8 +175,7 @@ rule emapper_annotate:
     resources:
         runtime=120,
         mem_mb=mem_allowed,
-        slurm_account=config['account'] if config['account'] else ''
-        #slurm_extra=f"--account {config['account']}" if config["account"] else ""
+        slurm_account=config['account'] if 'account' in config.keys() and config['account']!="" else ''
     shell:
         """
         export EGGNOG_DATA_DIR="{params.eggnog_data_dir}"
