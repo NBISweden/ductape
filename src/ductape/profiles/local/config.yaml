@@ -1,0 +1,11 @@
+rerun-triggers: "mtime"
+local-cores: 1
+use-conda: "True"
+use-singularity: "False"
+use-envmodules: "False"
+jobs: "1"
+reason: "True"
+printshellcmds: "True"
+keep-going: "True"
+rerun-incomplete: "True"
+nolock: "True"
