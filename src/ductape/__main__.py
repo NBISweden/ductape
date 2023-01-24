@@ -20,10 +20,10 @@ def main(arguments=None):
     subcommand_name = get_subcommand_name(arguments)
     module = importlib.import_module("." + subcommand_name, cli.__name__)
 
-    parser = ArgumentParser(description=__doc__, prog=PROGNAME)
+    parser = ArgumentParser(description=__doc__, prog=PROGNAME, allow_abbrev=False)
     subparsers = parser.add_subparsers()
     subparser = subparsers.add_parser(
-        subcommand_name, help=module.__doc__.split("\n")[1], description=module.__doc__
+        subcommand_name, help=module.__doc__.split("\n")[1], description=module.__doc__, allow_abbrev=False,
     )
     module.add_arguments(subparser)
     args, remainder = parser.parse_known_args(arguments)
