@@ -32,7 +32,10 @@ def add_arguments(parser):
     parser.add_argument(
         "--profile",
         type=str,
-        help="Run with this profile"
+        help="Run with this profile. Either a path to a directory with 'config.yaml' "
+             "or one already installed in default location (e.g. ~/.config/snakemake "
+             "depending on your system) or you may specify one of 'local', 'uppmax' "
+             "or 'test'"
     )
 
 
