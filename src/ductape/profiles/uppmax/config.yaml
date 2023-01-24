@@ -1,5 +1,6 @@
 rerun-triggers: "mtime"
 cluster-cancel: "scancel"
+cluster-sidecar: "slurm-sidecar.py"
 restart-times: "0"
 max-jobs-per-second: "10"
 max-status-checks-per-second: "10"
