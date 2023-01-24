@@ -139,10 +139,12 @@ rule emapper_search:
     resources:
         runtime=240,
         mem_mb=mem_allowed,
+        account=config['account'] if config['account'] else ''
+        #slurm_extra=f"--account {config['account']}" if config["account"] else ""
     shell:
         """
         mkdir -p {params.temp_dir}
-        export EGGNOG_DATA_DIR="{params.eggnog_data_dir}
+        export EGGNOG_DATA_DIR="{params.eggnog_data_dir}"
         emapper.py {params.flags} --cpu {threads} --temp_dir {params.temp_dir} \
             --scratch_dir {params.scratch_dir} -i {input.faa} -o {params.out} \
             --output_dir {params.output_dir} >{log} 2>&1
@@ -178,9 +180,11 @@ rule emapper_annotate:
     resources:
         runtime=120,
         mem_mb=mem_allowed,
+        account=config['account'] if config['account'] else ''
+        #slurm_extra=f"--account {config['account']}" if config["account"] else ""
     shell:
         """
-        export EGGNOG_DATA_DIR="{params.eggnog_data_dir}
+        export EGGNOG_DATA_DIR="{params.eggnog_data_dir}"
         emapper.py -m no_search {params.dbmem} --cpu {threads} -o {params.out} \
             --temp_dir {params.temp_dir} --scratch_dir {params.scratch_dir} \
             --output_dir {params.output_dir} --annotate_hits_table {input.ort} >{log} 2>&1
